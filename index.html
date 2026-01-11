@@ -278,8 +278,7 @@
                 <input type="password" id="authPassword" placeholder="Senha de acesso">
                 <button class="btn-login" onclick="handleLogin()">Acessar Sistema</button>
             </div>
-            <p style="margin-top: 20px; font-size: 12px;">Primeiro acesso? Use seu e-mail e crie uma senha para se
-                cadastrar.</p>
+            <p style="margin-top: 20px; font-size: 12px;">Primeiro acesso? Use seu e-mail e crie uma senha.</p>
         </div>
     </div>
 
@@ -319,6 +318,7 @@
     </div>
 
     <script>
+        // CONFIGURAÇÕES SUPABASE
         const _supabase = supabase.createClient('https://ndqjwashfklqwrwqabuo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kcWp3YXNoZmtscXdyd3FhYnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwOTk1MTMsImV4cCI6MjA4MzY3NTUxM30.MwPgU1zEuiE4OIHpPedyULyWH8cdXGmRCiqI0hsCyEg');
         let editId = null;
 
@@ -338,6 +338,7 @@
         async function handleLogin() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
+            if (!email || !password) return alert("Preencha os campos!");
             const { error: loginError } = await _supabase.auth.signInWithPassword({ email, password });
             if (loginError) {
                 const { error: signUpError } = await _supabase.auth.signUp({ email, password });
@@ -352,6 +353,7 @@
             checkSession();
         }
 
+        // Upload de Imagem ao colar
         document.getElementById('editor').addEventListener('paste', async (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let item of items) {
@@ -376,7 +378,7 @@
             const editor = document.getElementById('editor');
             const conteudo_html = editor.innerHTML;
 
-            if (!assunto || !editor.innerText.trim() && !conteudo_html.includes('<img')) return alert("Preencha os campos.");
+            if (!assunto || (!editor.innerText.trim() && !conteudo_html.includes('<img'))) return alert("Preencha os campos.");
 
             if (editId) {
                 await _supabase.from('notas_tecnicas').update({ usuario_nome, assunto, conteudo_html }).eq('id', editId);
@@ -400,7 +402,7 @@
                     <p class="meta">Responsável: ${n.usuario_nome}</p>
                     <div class="nota-content" id="content-${n.id}">${n.conteudo_html}</div>
                     <div class="actions">
-                        <button class="btn-action btn-copy" onclick="copyToWhatsApp(${n.id})">📲 WhatsApp</button>
+                        <button class="btn-action btn-copy" onclick="copyRichText(${n.id})">📋 Copiar Texto + Fotos</button>
                         <button class="btn-action" onclick="editNote(${n.id})">Editar</button>
                         <button class="btn-action" onclick="deleteNote(${n.id})" style="color:red">Excluir</button>
                     </div>
@@ -408,42 +410,46 @@
             });
         }
 
-        async function copyToWhatsApp(id) {
+        // FUNÇÃO DE CÓPIA INTEGRAL (TEXTO + IMAGENS)
+        async function copyRichText(id) {
             try {
                 const contentEl = document.getElementById(`content-${id}`);
                 const card = contentEl.parentElement;
                 const titulo = card.querySelector('h3').innerText;
                 const responsavel = card.querySelector('.meta').innerText;
 
-                // Formata o texto para o Clipboard
-                const textoPuro = `*${titulo}*\n${responsavel}\n\n${contentEl.innerText}`;
-                const imagens = contentEl.querySelectorAll('img');
+                // Cria uma área temporária com formatação visual
+                const tempArea = document.createElement('div');
+                tempArea.style.position = 'fixed';
+                tempArea.style.left = '-9999px';
+                tempArea.innerHTML = `
+                    <div style="font-family: Arial;">
+                        <p><strong>${titulo}</strong></p>
+                        <p><small>${responsavel}</small></p>
+                        <br>
+                        ${contentEl.innerHTML}
+                    </div>
+                `;
+                document.body.appendChild(tempArea);
 
-                // 1. Copia o texto para a área de transferência
-                await navigator.clipboard.writeText(textoPuro);
+                // Seleciona e copia o conteúdo formatado
+                const range = document.createRange();
+                range.selectNodeContents(tempArea);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
 
-                // 2. Se tiver imagens, compartilha os arquivos
-                if (imagens.length > 0 && navigator.canShare) {
-                    const filesArray = [];
-                    for (let img of imagens) {
-                        const response = await fetch(img.src);
-                        const blob = await response.blob();
-                        filesArray.push(new File([blob], 'evidencia.png', { type: blob.type }));
-                    }
+                const success = document.execCommand('copy');
+                document.body.removeChild(tempArea);
+                selection.removeAllRanges();
 
-                    // Abre o compartilhamento do sistema (escolha o WhatsApp)
-                    await navigator.share({
-                        files: filesArray,
-                        title: titulo,
-                        text: textoPuro // Tenta enviar o texto junto (alguns sistemas aceitam)
-                    });
+                if (success) {
+                    alert("✅ Conteúdo (texto e imagens) copiado! Agora vá ao WhatsApp e use o comando 'Colar'.");
                 } else {
-                    // Se for só texto, já abre o link direto
-                    const url = `https://wa.me/?text=${encodeURIComponent(textoPuro)}`;
-                    window.open(url, '_blank');
+                    throw new Error();
                 }
             } catch (err) {
-                alert("Texto copiado! Selecione o contato e cole a mensagem.");
+                alert("Erro ao copiar. Tente selecionar manualmente.");
             }
         }
 
