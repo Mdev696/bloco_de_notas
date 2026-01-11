@@ -80,14 +80,7 @@
             border: 1.5px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px;
-            transition: all 0.3s;
             background: #fdfdfd;
-        }
-
-        .auth-input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            background: var(--white);
         }
 
         .btn-login {
@@ -99,8 +92,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            margin-top: 10px;
         }
 
         #main-content {
@@ -131,7 +122,6 @@
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .logout-btn {
@@ -139,8 +129,6 @@
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 6px;
         }
 
         .container {
@@ -180,8 +168,8 @@
             padding: 12px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            outline: none;
             font-size: 14px;
+            outline: none;
         }
 
         #editor {
@@ -203,7 +191,6 @@
             border-radius: 6px;
             margin: 10px 0;
             display: block;
-            object-fit: contain;
         }
 
         .btn-save {
@@ -215,10 +202,6 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-        }
-
-        .btn-save.editing {
-            background: #10b981;
         }
 
         .nota-card {
@@ -278,16 +261,12 @@
                 <input type="password" id="authPassword" placeholder="Senha de acesso">
                 <button class="btn-login" onclick="handleLogin()">Acessar Sistema</button>
             </div>
-            <p style="margin-top: 20px; font-size: 12px;">Primeiro acesso? Use seu e-mail e crie uma senha.</p>
         </div>
     </div>
 
     <div id="main-content">
         <div class="user-header">
-            <div>
-                <strong style="font-size: 14px; color: var(--primary)">Sessão Ativa:</strong>
-                <span id="displayUser" style="font-size: 14px; color: var(--text-light)"></span>
-            </div>
+            <div><strong>Sessão Ativa:</strong> <span id="displayUser"></span></div>
             <span class="logout-btn" onclick="handleLogout()">Encerrar Sessão</span>
         </div>
 
@@ -299,15 +278,9 @@
                     <option value="" disabled selected>Selecione o Assunto...</option>
                     <option value="HL4-ES">HL4-ES</option>
                     <option value="HL4-RJ">HL4-RJ</option>
-                    <option value="DWDM RJ">DWDM RJ</option>
-                    <option value="DWDM ES">DWDM ES</option>
-                    <option value="HL5D ISOLADO">HL5D ISOLADO</option>
-                    <option value="GWD ISOLADO">GWD ISOLADO</option>
-                    <option value="ERBS">ERBS</option>
+                    <option value="DWDM">DWDM</option>
                     <option value="SG INFRA">SG INFRA</option>
                     <option value="OLT ISOLADA">OLT ISOLADA</option>
-                    <option value="REPORT REGIONAL RJ">REPORT REGIONAL RJ</option>
-                    <option value="REPORT REGIONAL ES">REPORT REGIONAL ES</option>
                 </select>
                 <div id="editor" contenteditable="true"></div>
             </div>
@@ -318,7 +291,6 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES SUPABASE
         const _supabase = supabase.createClient('https://ndqjwashfklqwrwqabuo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kcWp3YXNoZmtscXdyd3FhYnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwOTk1MTMsImV4cCI6MjA4MzY3NTUxM30.MwPgU1zEuiE4OIHpPedyULyWH8cdXGmRCiqI0hsCyEg');
         let editId = null;
 
@@ -338,13 +310,7 @@
         async function handleLogin() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
-            if (!email || !password) return alert("Preencha os campos!");
-            const { error: loginError } = await _supabase.auth.signInWithPassword({ email, password });
-            if (loginError) {
-                const { error: signUpError } = await _supabase.auth.signUp({ email, password });
-                if (signUpError) return alert(signUpError.message);
-                alert("Cadastro realizado!");
-            }
+            await _supabase.auth.signInWithPassword({ email, password });
             checkSession();
         }
 
@@ -353,7 +319,7 @@
             checkSession();
         }
 
-        // Upload de Imagem ao colar
+        // Colagem de imagem e upload automático
         document.getElementById('editor').addEventListener('paste', async (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let item of items) {
@@ -377,13 +343,11 @@
             const assunto = document.getElementById('noteAssunto').value;
             const editor = document.getElementById('editor');
             const conteudo_html = editor.innerHTML;
-
-            if (!assunto || (!editor.innerText.trim() && !conteudo_html.includes('<img'))) return alert("Preencha os campos.");
+            if (!assunto) return alert("Selecione o assunto.");
 
             if (editId) {
                 await _supabase.from('notas_tecnicas').update({ usuario_nome, assunto, conteudo_html }).eq('id', editId);
                 editId = null;
-                document.getElementById('btnMain').innerText = "💾 Salvar no Banco de Dados";
             } else {
                 await _supabase.from('notas_tecnicas').insert([{ usuario_nome, assunto, conteudo_html }]);
             }
@@ -402,71 +366,51 @@
                     <p class="meta">Responsável: ${n.usuario_nome}</p>
                     <div class="nota-content" id="content-${n.id}">${n.conteudo_html}</div>
                     <div class="actions">
-                        <button class="btn-action btn-copy" onclick="copyRichText(${n.id})">📋 Copiar Texto + Fotos</button>
-                        <button class="btn-action" onclick="editNote(${n.id})">Editar</button>
+                        <button class="btn-action btn-copy" onclick="copyToClipboard(${n.id})">📋 Copiar para WhatsApp</button>
                         <button class="btn-action" onclick="deleteNote(${n.id})" style="color:red">Excluir</button>
                     </div>
                 </div>`;
             });
         }
 
-        // FUNÇÃO DE CÓPIA INTEGRAL (TEXTO + IMAGENS)
-        async function copyRichText(id) {
+        // --- FUNÇÃO CORRIGIDA PARA COPIAR TEXTO + IMAGEM ---
+        async function copyToClipboard(id) {
             try {
                 const contentEl = document.getElementById(`content-${id}`);
                 const card = contentEl.parentElement;
                 const titulo = card.querySelector('h3').innerText;
                 const responsavel = card.querySelector('.meta').innerText;
+                const textoFinal = `*${titulo}*\n${responsavel}\n\n${contentEl.innerText}`;
 
-                // Cria uma área temporária com formatação visual
-                const tempArea = document.createElement('div');
-                tempArea.style.position = 'fixed';
-                tempArea.style.left = '-9999px';
-                tempArea.innerHTML = `
-                    <div style="font-family: Arial;">
-                        <p><strong>${titulo}</strong></p>
-                        <p><small>${responsavel}</small></p>
-                        <br>
-                        ${contentEl.innerHTML}
-                    </div>
-                `;
-                document.body.appendChild(tempArea);
+                const imgEl = contentEl.querySelector('img');
 
-                // Seleciona e copia o conteúdo formatado
-                const range = document.createRange();
-                range.selectNodeContents(tempArea);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
+                if (imgEl) {
+                    // 1. Busca a imagem e converte para Blob (PNG)
+                    const response = await fetch(imgEl.src);
+                    const blob = await response.blob();
 
-                const success = document.execCommand('copy');
-                document.body.removeChild(tempArea);
-                selection.removeAllRanges();
+                    // Se a imagem não for PNG, o Clipboard do sistema pode recusar, 
+                    // então garantimos que o Blob seja tratado corretamente.
+                    const item = new ClipboardItem({
+                        "text/plain": new Blob([textoFinal], { type: "text/plain" }),
+                        [blob.type]: blob
+                    });
 
-                if (success) {
-                    alert("✅ Conteúdo (texto e imagens) copiado! Agora vá ao WhatsApp e use o comando 'Colar'.");
+                    await navigator.clipboard.write([item]);
+                    alert("✅ Imagem e Texto copiados! Agora basta 'Colar' no WhatsApp.");
                 } else {
-                    throw new Error();
+                    // Caso não tenha imagem, copia apenas o texto
+                    await navigator.clipboard.writeText(textoFinal);
+                    alert("✅ Texto copiado! Agora basta 'Colar' no WhatsApp.");
                 }
             } catch (err) {
-                alert("Erro ao copiar. Tente selecionar manualmente.");
-            }
-        }
-
-        async function editNote(id) {
-            const { data } = await _supabase.from('notas_tecnicas').select('*').eq('id', id).single();
-            if (data) {
-                document.getElementById('userName').value = data.usuario_nome;
-                document.getElementById('noteAssunto').value = data.assunto;
-                document.getElementById('editor').innerHTML = data.conteudo_html;
-                editId = id;
-                document.getElementById('btnMain').innerText = "🆙 Atualizar Nota";
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                console.error(err);
+                alert("Erro ao copiar. Certifique-se de estar usando HTTPS e um navegador moderno.");
             }
         }
 
         async function deleteNote(id) {
-            if (confirm("Excluir nota?")) {
+            if (confirm("Excluir?")) {
                 await _supabase.from('notas_tecnicas').delete().eq('id', id);
                 loadNotes();
             }
