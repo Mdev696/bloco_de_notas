@@ -29,7 +29,7 @@
             color: var(--text-main);
         }
 
-        /* --- ESTILIZAÇÃO DA TELA DE LOGIN --- */
+        /* --- TELA DE LOGIN CORPORATIVA --- */
         #auth-container {
             position: fixed;
             inset: 0;
@@ -47,12 +47,12 @@
             background: var(--white);
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
         .auth-logo {
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 10px;
             display: block;
         }
@@ -61,7 +61,7 @@
             color: var(--primary);
             font-size: 24px;
             font-weight: 700;
-            margin: 0 0 10px 0;
+            margin-bottom: 10px;
         }
 
         .auth-box p {
@@ -81,14 +81,6 @@
             border: 1.5px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px;
-            transition: all 0.3s;
-            background: #fdfdfd;
-        }
-
-        .auth-input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            background: var(--white);
         }
 
         .btn-login {
@@ -97,20 +89,13 @@
             padding: 14px;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            margin-top: 10px;
+            transition: 0.3s;
         }
 
         .btn-login:hover {
             background: #0f172a;
-            transform: translateY(-1px);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
         }
 
         /* --- CONTEÚDO PRINCIPAL --- */
@@ -118,19 +103,6 @@
             display: none;
             width: 100%;
             max-width: 850px;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .user-header {
@@ -138,25 +110,26 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.6);
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid #e2e8f0;
         }
 
         .logout-btn {
             color: #ef4444;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 13px;
             cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 6px;
-            transition: background 0.2s;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.05);
+            transition: 0.2s;
         }
 
         .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.15);
         }
 
         .container {
@@ -171,7 +144,6 @@
             color: var(--primary);
             margin: 0;
             font-weight: 800;
-            letter-spacing: -0.5px;
         }
 
         h1::after {
@@ -184,7 +156,6 @@
             border-radius: 2px;
         }
 
-        /* Reutilizando seus estilos originais de editor e cards */
         .input-group {
             display: flex;
             flex-direction: column;
@@ -210,18 +181,16 @@
         }
 
         #editor:empty:before {
-            content: "Descreva a atividade ou cole fotos técnicas...";
+            content: "Descreva a atividade...";
             color: #94a3b8;
         }
 
         #editor img,
         .nota-content img {
             max-width: 100%;
-            max-height: 450px;
-            border-radius: 6px;
+            border-radius: 8px;
             margin: 10px 0;
             display: block;
-            object-fit: contain;
         }
 
         .btn-save {
@@ -240,27 +209,12 @@
             background: #10b981;
         }
 
-        .btn-save:hover {
-            opacity: 0.9;
-        }
-
         .nota-card {
             background: #fff;
             border: 1px solid #e2e8f0;
             padding: 20px;
             border-radius: 12px;
             margin-top: 15px;
-            transition: border-color 0.3s;
-        }
-
-        .nota-card:hover {
-            border-color: var(--accent);
-        }
-
-        .nota-card h3 {
-            margin: 0;
-            color: var(--primary);
-            font-size: 1.1rem;
         }
 
         .meta {
@@ -275,7 +229,6 @@
             margin-top: 15px;
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
         }
 
         .btn-action {
@@ -285,17 +238,13 @@
             cursor: pointer;
             font-size: 12px;
             background: #fff;
-            font-weight: 500;
         }
 
         .btn-copy {
             color: white;
             background-color: #25d366;
             border-color: #25d366;
-        }
-
-        .btn-copy:hover {
-            background-color: #1eb954;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -304,35 +253,28 @@
 
     <div id="auth-container">
         <div class="auth-box">
-            <span class="auth-logo">📁</span>
-            <h2>Notas Núcleo</h2>
-
-
+            <span class="auth-logo">🏢</span>
+            <h2>Notas Técnicas</h2>
+            <p>Acesso restrito ao sistema de registros corporativos.</p>
             <div class="auth-input-group">
                 <input type="email" id="authEmail" placeholder="E-mail corporativo">
-                <input type="password" id="authPassword" placeholder="Senha de acesso">
-                <button class="btn-login" onclick="handleLogin()">Acessar Sistema</button>
+                <input type="password" id="authPassword" placeholder="Senha">
+                <button class="btn-login" onclick="handleLogin()">Entrar no Sistema</button>
             </div>
-
-            <p style="margin-top: 20px; font-size: 12px;">
-                Primeiro acesso? Use seu e-mail e crie uma senha para se cadastrar automaticamente.
-            </p>
         </div>
     </div>
 
     <div id="main-content">
         <div class="user-header">
             <div>
-                <strong style="font-size: 14px; color: var(--primary)">Sessão Ativa:</strong>
-                <span id="displayUser" style="font-size: 14px; color: var(--text-light)"></span>
+                <strong style="font-size: 13px; color: var(--primary)">USUÁRIO:</strong>
+                <span id="displayUser" style="font-size: 13px; color: var(--text-light); margin-left: 5px;"></span>
             </div>
-            <span class="logout-btn" onclick="handleLogout()">Encerrar Sessão</span>
+            <div class="logout-btn" onclick="handleLogout()">ENCERRAR SESSÃO</div>
         </div>
 
         <div class="container">
             <h1>Portal de Notas</h1>
-            <p class="header-desc">Registro técnico de atividades e infraestrutura.</p>
-
             <div class="input-group">
                 <input type="text" id="userName" placeholder="Nome do Colaborador">
                 <select id="noteAssunto">
@@ -341,25 +283,21 @@
                     <option value="DWDM">DWDM</option>
                     <option value="HL5D">HL5D</option>
                     <option value="OLT">OLT</option>
-                    <option value="Teste Rsnac">Teste Rsnac</option>
                     <option value="Erbs">Erbs</option>
-                    <option value="SG INFRA">SG INFRA</option>
-                    <option value="Anel comutado">Anel comutado</option>
                 </select>
                 <div id="editor" contenteditable="true"></div>
             </div>
-
-            <button class="btn-save" onclick="handleSave()" id="btnMain">💾 Salvar no Banco de Dados</button>
+            <button class="btn-save" onclick="handleSave()" id="btnMain">💾 Salvar Nota</button>
             <div id="notesList"></div>
         </div>
     </div>
 
     <script>
-        // Dados originais do Supabase mantidos
         const _supabase = supabase.createClient('https://ndqjwashfklqwrwqabuo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kcWp3YXNoZmtscXdyd3FhYnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwOTk1MTMsImV4cCI6MjA4MzY3NTUxM30.MwPgU1zEuiE4OIHpPedyULyWH8cdXGmRCiqI0hsCyEg');
 
         let editId = null;
 
+        // VERIFICA SESSÃO AO CARREGAR
         async function checkSession() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
@@ -370,30 +308,33 @@
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-content').style.display = 'none';
+                document.getElementById('notesList').innerHTML = ""; // Limpa a lista na saída
             }
         }
 
         async function handleLogin() {
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
-            if (!email || !password) return alert("Por favor, preencha todos os campos.");
+            const { error } = await _supabase.auth.signInWithPassword({ email, password });
 
-            const { error: loginError } = await _supabase.auth.signInWithPassword({ email, password });
-
-            if (loginError) {
+            if (error) {
                 const { error: signUpError } = await _supabase.auth.signUp({ email, password });
-                if (signUpError) return alert(signUpError.message);
-                alert("Cadastro realizado! Você já pode entrar.");
+                if (signUpError) return alert("Erro: " + signUpError.message);
+                alert("Cadastro realizado! Tente entrar novamente.");
             }
             checkSession();
         }
 
+        // FUNÇÃO DE LOGOUT CORRIGIDA
         async function handleLogout() {
-            await _supabase.auth.signOut();
+            const { error } = await _supabase.auth.signOut();
+            if (error) {
+                alert("Erro ao sair: " + error.message);
+            }
+            // Força a atualização da interface
             checkSession();
         }
 
-        // Funções de manipulação de notas (conforme seu código original que já funciona)
         document.getElementById('editor').addEventListener('paste', async (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let item of items) {
@@ -418,15 +359,16 @@
             const editor = document.getElementById('editor');
             const conteudo_html = editor.innerHTML;
 
-            if (!assunto || (!editor.innerText.trim() && !conteudo_html.includes('<img'))) return alert("Preencha o assunto e o conteúdo.");
+            if (!assunto || !editor.innerText.trim() && !conteudo_html.includes('<img')) return alert("Preencha os campos!");
+
+            const { data: { user } } = await _supabase.auth.getUser();
 
             if (editId) {
                 await _supabase.from('notas_tecnicas').update({ usuario_nome, assunto, conteudo_html }).eq('id', editId);
                 editId = null;
-                document.getElementById('btnMain').innerText = "💾 Salvar no Banco de Dados";
-                document.getElementById('btnMain').classList.remove('editing');
+                document.getElementById('btnMain').innerText = "💾 Salvar Nota";
             } else {
-                await _supabase.from('notas_tecnicas').insert([{ usuario_nome, assunto, conteudo_html }]);
+                await _supabase.from('notas_tecnicas').insert([{ usuario_nome, assunto, conteudo_html, user_id: user.id }]);
             }
             document.getElementById('noteAssunto').value = "";
             editor.innerHTML = "";
@@ -490,9 +432,7 @@
                 document.getElementById('noteAssunto').value = data.assunto;
                 document.getElementById('editor').innerHTML = data.conteudo_html;
                 editId = id;
-                const btn = document.getElementById('btnMain');
-                btn.innerText = "🆙 Atualizar Nota";
-                btn.classList.add('editing');
+                document.getElementById('btnMain').innerText = "🆙 Atualizar Nota";
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
