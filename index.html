@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Notas Corporativo - Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #3b82f6;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            --text-main: #334155;
+            --text-light: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin: 0;
+            font-weight: 800;
+        }
+
+        h1::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 3px;
+            background: var(--accent);
+            margin: 8px auto;
+        }
+
+        .header-desc {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        select,
+        #editor {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        #editor {
+            min-height: 200px;
+            background: #fff;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+        #editor:empty:before {
+            content: "Descreva a atividade ou cole fotos técnicas...";
+            color: #94a3b8;
+        }
+
+        #editor img,
+        .nota-content img {
+            max-width: 100%;
+            max-height: 450px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: block;
+            object-fit: contain;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-save.editing {
+            background: #10b981;
+        }
+
+        .btn-save:hover {
+            opacity: 0.9;
+        }
+
+        .nota-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .nota-card h3 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .meta {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            font-size: 12px;
+            background: #fff;
+        }
+
+        .btn-copy {
+            color: white;
+            background-color: #25d366;
+            /* Cor do WhatsApp */
+            border-color: #25d366;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Portal de Notas</h1>
+        <p class="header-desc">Registro técnico de atividades e infraestrutura.</p>
+
+        <div class="input-group">
+            <input type="text" id="userName" placeholder="Nome do Colaborador">
+            <select id="noteAssunto">
+                <option value="" disabled selected>Selecione o Assunto...</option>
+                <option value="Riscos nas cidades">Riscos nas cidades</option>
+                <option value="DWDM">DWDM</option>
+                <option value="HL5D">HL5D</option>
+                <option value="OLT">OLT</option>
+                <option value="Teste Rsnac">Teste Rsnac</option>
+                <option value="Erbs">Erbs</option>
+                <option value="SG INFRA">SG INFRA</option>
+                <option value="Anel comutado">Anel comutado</option>
+            </select>
+            <div id="editor" contenteditable="true"></div>
+        </div>
+
+        <button class="btn-save" onclick="handleSave()" id="btnMain">💾 Salvar no Supabase</button>
+        <div id="notesList"></div>
+    </div>
+
+    <script>
+        const _supabase = supabase.createClient('https://ndqjwashfklqwrwqabuo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kcWp3YXNoZmtscXdyd3FhYnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwOTk1MTMsImV4cCI6MjA4MzY3NTUxM30.MwPgU1zEuiE4OIHpPedyULyWH8cdXGmRCiqI0hsCyEg');
+
+        let editId = null;
+
+        document.getElementById('editor').addEventListener('paste', async (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf("image") !== -1) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    const fileName = `${Date.now()}_${file.name || 'img.png'}`;
+
+                    const { data, error } = await _supabase.storage
+                        .from('arquivos_notas')
+                        .upload(fileName, file);
+
+                    if (data) {
+                        const { data: { publicUrl } } = _supabase.storage
+                            .from('arquivos_notas')
+                            .getPublicUrl(fileName);
+
+                        const img = document.createElement('img');
+                        img.src = publicUrl;
+                        document.getElementById('editor').appendChild(img);
+                    }
+                }
+            }
+        });
+
+        async function handleSave() {
+            const usuario_nome = document.getElementById('userName').value || "Não identificado";
+            const assunto = document.getElementById('noteAssunto').value;
+            const editor = document.getElementById('editor');
+            const conteudo_html = editor.innerHTML;
+
+            if (!assunto || (!editor.innerText.trim() && !conteudo_html.includes('<img'))) {
+                return alert("Preencha o assunto e o conteúdo.");
+            }
+
+            if (editId) {
+                const { error } = await _supabase.from('notas_tecnicas').update({ usuario_nome, assunto, conteudo_html }).eq('id', editId);
+                if (error) alert("Erro ao atualizar nota.");
+                editId = null;
+                document.getElementById('btnMain').innerText = "💾 Salvar no Supabase";
+                document.getElementById('btnMain').classList.remove('editing');
+            } else {
+                const { error } = await _supabase.from('notas_tecnicas').insert([{ usuario_nome, assunto, conteudo_html }]);
+                if (error) alert("Erro ao inserir nota.");
+            }
+
+            document.getElementById('noteAssunto').value = "";
+            editor.innerHTML = "";
+            loadNotes();
+        }
+
+        async function loadNotes() {
+            const { data } = await _supabase.from('notas_tecnicas').select('*').order('created_at', { ascending: false });
+            const list = document.getElementById('notesList');
+            list.innerHTML = "";
+            data.forEach(n => {
+                list.innerHTML += `
+                <div class="nota-card">
+                    <h3>${n.assunto}</h3>
+                    <p class="meta">Responsável: ${n.usuario_nome}</p>
+                    <div class="nota-content" id="content-${n.id}">${n.conteudo_html}</div>
+                    <div class="actions">
+                        <button class="btn-action btn-copy" onclick="copyToWhatsApp(${n.id})">📲 Enviar p/ WhatsApp</button>
+                        <button class="btn-action" onclick="editNote(${n.id})">Editar</button>
+                        <button class="btn-action" onclick="deleteNote(${n.id})" style="color:red">Excluir</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        async function copyToWhatsApp(id) {
+            try {
+                const contentEl = document.getElementById(`content-${id}`);
+                const titulo = contentEl.parentElement.querySelector('h3').innerText;
+                const textoPuro = `*${titulo}*\n\n${contentEl.innerText}`;
+
+                const imagens = contentEl.querySelectorAll('img');
+
+                // Se houver imagens e estivermos no celular (Web Share API disponível)
+                if (imagens.length > 0 && navigator.canShare) {
+                    const filesArray = [];
+
+                    for (let img of imagens) {
+                        const response = await fetch(img.src);
+                        const blob = await response.blob();
+                        const file = new File([blob], 'foto_tecnica.png', { type: blob.type });
+                        filesArray.push(file);
+                    }
+
+                    // Tenta compartilhar as imagens + o texto
+                    await navigator.share({
+                        files: filesArray,
+                        title: titulo,
+                        text: textoPuro
+                    });
+                } else {
+                    // Fallback para apenas texto ou computadores
+                    const tempEl = document.createElement('div');
+                    tempEl.style.position = 'fixed';
+                    tempEl.style.left = '-9999px';
+                    tempEl.innerHTML = `<div><h2>${titulo}</h2>${contentEl.innerHTML}</div>`;
+                    document.body.appendChild(tempEl);
+
+                    const range = document.createRange();
+                    range.selectNodeContents(tempEl);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    document.execCommand('copy');
+
+                    document.body.removeChild(tempEl);
+                    alert("Copiado! Agora cole no WhatsApp.");
+                }
+            } catch (err) {
+                console.log("Erro no compartilhamento:", err);
+                alert("Use o copiar/colar padrão do seu celular.");
+            }
+        }
+
+        async function editNote(id) {
+            const { data, error } = await _supabase.from('notas_tecnicas').select('*').eq('id', id).single();
+            if (data) {
+                document.getElementById('userName').value = data.usuario_nome;
+                document.getElementById('noteAssunto').value = data.assunto;
+                document.getElementById('editor').innerHTML = data.conteudo_html;
+
+                editId = id;
+                const btn = document.getElementById('btnMain');
+                btn.innerText = "🆙 Atualizar Nota";
+                btn.classList.add('editing');
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        async function deleteNote(id) {
+            if (confirm("Excluir nota permanentemente?")) {
+                await _supabase.from('notas_tecnicas').delete().eq('id', id);
+                loadNotes();
+            }
+        }
+
+        loadNotes();
+    </script>
+</body>
+
+</html>
